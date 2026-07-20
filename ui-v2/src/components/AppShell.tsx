@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth";
 import {
   LayoutDashboard,
   MessageSquare,
@@ -17,6 +18,8 @@ import {
   ShieldCheck,
   Zap,
   Store,
+  LogOut,
+  User,
 } from "lucide-react";
 
 const navSections = [
@@ -55,6 +58,8 @@ const navSections = [
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useAuth();
   const [backendStatus, setBackendStatus] = useState<
     "connected" | "connecting" | "disconnected"
   >("connecting");
@@ -212,6 +217,48 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               {backendStatus === "connected" ? "ACTIVE" : "OFFLINE"}
             </span>
           </div>
+
+          {/* User avatar + logout */}
+          {user && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div
+                style={{
+                  display: "flex", alignItems: "center", gap: 8,
+                  padding: "5px 10px", borderRadius: "var(--r-full)",
+                  background: "var(--bg-elevated)", border: "1px solid var(--border)",
+                }}
+              >
+                <div
+                  style={{
+                    width: 24, height: 24, borderRadius: "50%",
+                    background: "var(--accent)", color: "white",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 10, fontWeight: 700, flexShrink: 0,
+                  }}
+                >
+                  {(user.full_name || user.email).slice(0, 2).toUpperCase()}
+                </div>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {user.full_name || user.email.split("@")[0]}
+                </span>
+              </div>
+              <button
+                onClick={() => { logout(); router.push("/login"); }}
+                title="Sign out"
+                style={{
+                  background: "none", border: "1px solid var(--border)",
+                  borderRadius: "var(--r-full)", cursor: "pointer",
+                  width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center",
+                  color: "var(--text-muted)", transition: "all 150ms",
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--error)"; (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--error)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--text-muted)"; (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border)"; }}
+                id="logout-btn"
+              >
+                <LogOut size={14} />
+              </button>
+            </div>
+          )}
         </header>
 
         <div className="page-content">{children}</div>

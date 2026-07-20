@@ -1,176 +1,177 @@
-# ⚡ Atlas V2 – AI-powered Warehouse Intelligence Operating System
+# Atlas V2 — Warehouse Intelligence OS
 
-Atlas is not a reporting application. Atlas is an AI-powered Warehouse Intelligence Operating System that can learn, collect, investigate, correlate, visualize and explain warehouse data automatically.
-
----
-
-## 🏗 Architecture
-
-```
-┌─────────────────────────────────────────────────────────┐
-│              PRESENTATION LAYER                         │
-│  Next.js + React + TailwindCSS + Framer Motion          │
-│  (Command Center, AI Chat, Automation Studio)           │
-└───────────────────┬─────────────────────────────────────┘
-                    │ HTTP / WebSockets
-┌───────────────────▼─────────────────────────────────────┐
-│              APPLICATION LAYER                          │
-│  FastAPI Backend                                        │
-│  Auth │ AI Engine │ Collector │ Normalizer │ Correlator │
-└──────┬──────────────────────────────────┬───────────────┘
-       │                                  │
-┌──────▼──────────────────┐  ┌────────────▼───────────────┐
-│      PostgreSQL          │  │       Redis (Cache)         │
-│  (Structured State)      │  │   (Sessions & Live Data)    │
-└──────────────────────────┘  └─────────────────────────────┘
-```
+> **Atlas is not a reporting application.**
+> Atlas is an AI-powered Warehouse Intelligence Operating System that learns, collects, investigates, correlates, visualises, and explains warehouse data automatically.
 
 ---
 
-## 🚀 Getting Started
+## What Atlas Does
+
+| Capability | Description |
+|---|---|
+| **AI Chat** | Ask anything in plain language — Atlas understands, acts, and explains |
+| **Auto-Collection** | Browser automation collects reports from any WMS without API access |
+| **Investigation** | Atlas detects anomalies, runs root-cause analysis, and proposes fixes |
+| **Analytics** | Live charts: picking accuracy trends, inventory variance by zone |
+| **Automation Studio** | Visual workflow builder — no code required |
+| **Universal Search** | Full-text across SKUs, locations, investigations, workflows in one box |
+| **Skills & Marketplace** | Modular plugins for any ERP, WMS, or reporting system |
+
+---
+
+## Tech Stack
+
+### Frontend
+- **Next.js 16** + **React 19** + **TypeScript**
+- **TailwindCSS v4** + custom dark design system
+- **Framer Motion** — animations and transitions
+- **Recharts** — live analytics charts
+- **Lucide React** — icon set
+
+### Backend
+- **FastAPI** — async Python API server
+- **SQLModel** — ORM (PostgreSQL in prod, SQLite in dev)
+- **Playwright** — browser automation engine
+- **Jose** — JWT auth
+- **Loguru** — structured logging
+- **Google Gemini / OpenAI / Ollama** — AI providers (hot-reloadable)
+
+---
+
+## Getting Started (Development)
 
 ### Prerequisites
+- Python 3.11+
+- Node.js 20+
+- A Gemini, OpenAI, or Ollama API key
 
-- **Node.js** 20.x or 22.x
-- **Python** 3.10+
-- **Docker** & Docker Compose (for PostgreSQL + Redis)
-- **Playwright** browser dependencies
-
-### Quick Start (Docker)
+### 1. Clone
 
 ```bash
-# 1. Clone and navigate
-cd D:\antigravity\Atlas
+git clone https://github.com/mb69i/ai-report
+cd ai-report
+```
 
-# 2. Start PostgreSQL + Redis
-docker compose up -d postgres redis
+### 2. Backend
 
-# 3. Install dependencies
+```bash
+# Install dependencies
 pip install -r requirements.txt
-cd ui-v2 && npm install && cd ..
 
-# 4. Run Atlas V2
-npm run dev:v2
+# Configure environment
+cp .env.example .env
+# Edit .env — add at minimum: GEMINI_API_KEY and JWT_SECRET_KEY
+
+# Seed database with demo data
+python backend/storage/seeder.py
+
+# Start backend
+python backend/main.py
+# → running on http://127.0.0.1:7411
+# → docs at  http://127.0.0.1:7411/docs
 ```
 
-This starts:
-- **Next.js frontend** at `http://localhost:3000`
-- **FastAPI backend** at `http://localhost:7411`
-- **PostgreSQL** at `localhost:5432`
-- **Redis** at `localhost:6379`
-
-### Configuration
-
-Copy `.env.v2.example` to `.env` and configure:
+### 3. Frontend
 
 ```bash
-cp .env.v2.example .env
+cd ui-v2
+npm install
+npm run dev
+# → http://localhost:3000
 ```
 
-Key settings:
-- `GEMINI_API_KEY` – Google Gemini API key (cloud AI)
-- `CLAUDE_API_KEY` – Anthropic Claude API key (optional)
-- `DATABASE_URL` – PostgreSQL connection string
-- `JWT_SECRET_KEY` – Secret for JWT token signing
+### 4. First Login
+
+Visit `http://localhost:3000` — you will be redirected to `/login`.
+
+Register a new account, or use the demo credentials shown on the login page.
 
 ---
 
-## 📁 Project Structure
+## Production Deployment (Docker)
+
+```bash
+# 1. Configure environment
+cp .env.example .env
+# Edit .env — set: POSTGRES_PASSWORD, JWT_SECRET_KEY, GEMINI_API_KEY
+
+# 2. Start all services
+docker compose up -d
+
+# 3. Seed the database (first run only)
+docker compose exec backend python backend/storage/seeder.py
+
+# Services:
+#   PostgreSQL  → localhost:5432
+#   Redis       → localhost:6379
+#   Backend     → http://localhost:7411
+#   Frontend    → http://localhost:3000
+#   API Docs    → http://localhost:7411/docs
+```
+
+---
+
+## Project Structure
 
 ```
-D:\antigravity\Atlas\
-├── backend/                      # FastAPI backend server
-│   ├── api/                      # REST API routers
-│   │   ├── auth_api.py           # JWT authentication
-│   │   ├── ai_chat.py            # AI assistant
-│   │   ├── runner.py             # Workflow execution
-│   │   ├── workflows.py          # Workflow CRUD
-│   │   └── ...
-│   ├── auth/                     # Authentication utilities
-│   ├── ai/                       # AI clients (Gemini, Claude, Ollama)
-│   ├── automation/               # Playwright browser integration
-│   ├── config/                   # Settings & configuration
-│   ├── core/                     # Workflow engines
-│   ├── extractors/               # HTML/Excel parsers
-│   ├── reporting/                # Report generators
-│   └── storage/                  # Database models & engine
-├── ui-v2/                        # Next.js V2 frontend
+Atlas/
+├── backend/
+│   ├── ai/              # Gemini / OpenAI / Ollama clients + orchestrator
+│   ├── api/             # FastAPI routers (dashboard, search, auth, workflows…)
+│   ├── auth/            # JWT utilities, password hashing
+│   ├── automation/      # Playwright browser manager
+│   ├── config/          # Settings (pydantic-settings)
+│   ├── core/            # Workflow engine
+│   ├── reporting/       # Excel / PDF report generators
+│   ├── storage/         # SQLModel schemas, migrations, seeder
+│   └── main.py          # FastAPI app entrypoint
+├── ui-v2/
 │   └── src/
-│       ├── app/                  # App Router pages
-│       │   ├── page.tsx          # Command Center (home)
-│       │   ├── chat/             # AI Assistant
-│       │   ├── reports/          # Generated Reports
-│       │   ├── investigations/   # Root Cause Analysis
-│       │   ├── analytics/        # Warehouse KPIs
-│       │   ├── automation/       # Automation Studio
-│       │   ├── skills/           # Installed Skills
-│       │   ├── marketplace/      # Skill Store
-│       │   ├── search/           # Global Search
-│       │   ├── logs/             # System Logs
-│       │   └── settings/         # Configuration
-│       └── components/           # Shared components
-├── ui/                           # Legacy V1 Electron frontend
-├── docker-compose.yml            # PostgreSQL + Redis + Backend
-├── Dockerfile.backend            # Backend container
-├── atlas.config.json             # Runtime configuration
-├── workflows/                    # Saved workflow definitions
-├── plugins/                      # Installed plugins
-└── reports/                      # Generated outputs
+│       ├── app/         # Next.js App Router pages
+│       ├── components/  # AppShell, shared components
+│       └── lib/         # api.ts (typed client), auth.tsx (context)
+├── workflows/           # JSON workflow definitions
+├── docker-compose.yml   # Production compose
+├── Dockerfile.backend   # FastAPI image
+└── ui-v2/Dockerfile.frontend  # Next.js image
 ```
 
 ---
 
-## 🎨 Design System
+## API Reference
 
-Atlas V2 uses the **Milano Red** design system:
+The full interactive API docs are available at `http://localhost:7411/docs` when the backend is running.
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| Accent | `#A90E02` | Primary actions, brand identity |
-| Background | `#0A0A0A` (dark) / `#FFFBD4` (light) | Base background |
-| Text | `#F5F5F5` (dark) / `#111111` (light) | Primary text |
-| Success | `#16A34A` | Positive states |
-| Warning | `#D97706` | Caution states |
-| Error | `#DC2626` | Error states |
+Key endpoints:
 
----
-
-## 🧠 AI Assistant
-
-Users interact with Atlas using natural language:
-
-```
-> Download yesterday's reports
-> Investigate location IQ1-2A17
-> Generate Excel for Zone A cycle count
-> Explain shortages this week
-> Email today's report to the team
-```
-
-No command syntax. No code. Just plain human language.
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/auth/register` | Register a new user |
+| `POST` | `/api/auth/login` | Login (returns JWT) |
+| `GET` | `/api/dashboard/summary` | Live dashboard stats |
+| `GET` | `/api/dashboard/charts/accuracy-trend` | 30-day accuracy chart |
+| `GET` | `/api/dashboard/charts/variance-by-zone` | Zone variance chart |
+| `GET` | `/api/search?q=...` | Universal search |
+| `GET` | `/api/workflows` | List automations |
+| `POST` | `/api/runner/run` | Execute a workflow |
+| `GET` | `/api/reports` | List reports |
+| `POST` | `/api/ai/chat` | Chat with Atlas AI |
+| `GET` | `/api/settings` | Get configuration |
+| `PUT` | `/api/settings/keys` | Save API keys |
+| `POST` | `/api/settings/test-connection` | Test AI provider |
 
 ---
 
-## 🔒 Security & Privacy
+## Design Principles
 
-- **JWT Authentication** with role-based access (admin, supervisor, operator, read-only)
-- **AI Data Privacy Vault** — never sends raw warehouse data to external AI
-- **Offline Mode** — route all AI through local Gemma/Ollama
-- **Encrypted credentials** stored via system keyring
-- **Audit logs** for all user actions
+1. **Zero-code experience** — the user talks to Atlas, Atlas acts
+2. **AI-first** — every feature is designed to be explainable in plain language
+3. **Self-healing** — Playwright retries automatically, the fallback chain handles AI provider failures
+4. **Offline capable** — SQLite fallback, Ollama for local AI
+5. **Modular** — every feature is a router + a page; extending Atlas means adding one file
 
 ---
 
-## 📋 Development Milestones
+## License
 
-| # | Milestone | Status |
-|---|-----------|--------|
-| 1 | Foundation (Architecture, Auth, UI Shell, DB) | ✅ Complete |
-| 2 | Collector Engine (Playwright + Teach Mode) | ⬜ Planned |
-| 3 | Normalization & Correlation | ⬜ Planned |
-| 4 | Investigation Engine | ⬜ Planned |
-| 5 | AI Engine & Assistant | ⬜ Planned |
-| 6 | Automation Studio | ⬜ Planned |
-| 7 | Analytics & Dashboards | ⬜ Planned |
-| 8 | Marketplace & Skills | ⬜ Planned |
-| 9 | Optimization & Enterprise Hardening | ⬜ Planned |
+MIT © Atlas V2

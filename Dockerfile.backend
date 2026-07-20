@@ -1,26 +1,25 @@
-# Atlas V2 – FastAPI Backend Dockerfile
-FROM python:3.12-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
-# System dependencies for psycopg, playwright, etc.
+# System deps for Playwright + psycopg2 + Pillow
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libpq-dev \
-    curl \
+    curl wget gnupg ca-certificates \
+    libpq-dev gcc libjpeg-dev zlib1g-dev libffi-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Python dependencies
+# Python deps
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Install Playwright browsers
+RUN playwright install chromium --with-deps || true
+
 # Copy application code
-COPY backend/ ./backend/
-COPY atlas.config.json .
+COPY . .
 
-# Ensure data directories exist
-RUN mkdir -p data/sessions data/downloads data/exports reports backups logs plugins workflows
-
+# Expose port
 EXPOSE 7411
 
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "7411", "--reload"]
+# Entrypoint
+CMD ["python", "backend/main.py"]
