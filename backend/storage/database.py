@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Optional, List, Any
 from enum import Enum
 
-from sqlmodel import SQLModel, Field, Column, Relationship
+from sqlmodel import SQLModel, Field, Column, Relationship, select
 from sqlalchemy import JSON, Text, BigInteger, Index, text
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import sessionmaker
@@ -463,6 +463,7 @@ async def init_db() -> None:
         async with engine.begin() as conn:
             await conn.run_sync(SQLModel.metadata.create_all)
         logger.info("Atlas V2 database initialized.")
+        await _seed_default_admin()
     except Exception as e:
         url = _get_database_url()
         if "postgresql" in url:
@@ -487,6 +488,42 @@ async def init_db() -> None:
             logger.info("Atlas V2 database initialized with SQLite fallback.")
         else:
             raise e
+
+    # Auto-seed default admin user if no users exist
+    await _seed_default_admin()
+
+
+async def _seed_default_admin() -> None:
+    """Create admin@atlas.ai with password atlas123 if the users table is empty."""
+    try:
+        import uuid
+        import bcrypt
+        from datetime import datetime, timezone
+
+        factory = get_session_factory()
+        async with factory() as session:
+            result = await session.execute(select(User).where(User.email == "admin@atlas.ai"))
+            if result.scalars().first() is not None:
+                return  # Already exists
+
+            hashed = bcrypt.hashpw(b"atlas123", bcrypt.gensalt()).decode("utf-8")
+            now = datetime.now(timezone.utc)
+            admin = User(
+                user_id=str(uuid.uuid4()),
+                email="admin@atlas.ai",
+                full_name="Atlas Admin",
+                hashed_password=hashed,
+                role="admin",
+                is_active=True,
+                avatar_url="",
+                created_at=now,
+                updated_at=now,
+            )
+            session.add(admin)
+            await session.commit()
+            logger.info("Default admin user created → admin@atlas.ai / atlas123")
+    except Exception as e:
+        logger.warning(f"Could not seed default admin: {e}")
 
 
 async def close_db() -> None:
