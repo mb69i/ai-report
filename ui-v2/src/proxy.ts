@@ -1,5 +1,5 @@
 /**
- * Atlas V2 – Route Middleware
+ * Atlas V2 – Route Proxy (Next.js 16+ Route Middleware)
  *
  * Runs on every request before rendering.
  * - Unauthenticated users are redirected to /login.
@@ -10,7 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const PUBLIC_PATHS = new Set(["/login"]);
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Always allow public routes and internal Next.js assets
@@ -23,7 +23,6 @@ export function middleware(request: NextRequest) {
   }
 
   // Check for the auth token stored as a cookie (set by the client via JS)
-  // Note: We use a cookie mirror of localStorage for SSR middleware access.
   const token = request.cookies.get("atlas_token")?.value;
 
   if (!token) {
