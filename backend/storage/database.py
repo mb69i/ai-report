@@ -369,11 +369,37 @@ async def get_session():
 
 
 async def init_db() -> None:
-    """Create all tables. Called on application startup."""
+    """Create all tables. Called on application startup. Falls back to SQLite if PostgreSQL fails."""
+    global _async_engine, _async_session_factory
     engine = get_async_engine()
-    async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.create_all)
-    logger.info("Atlas V2 database initialized.")
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(SQLModel.metadata.create_all)
+        logger.info("Atlas V2 database initialized.")
+    except Exception as e:
+        url = _get_database_url()
+        if "postgresql" in url:
+            logger.warning(f"PostgreSQL connection failed ({e}). Falling back to SQLite for local development...")
+            # Recreate engine with SQLite
+            root = Path(__file__).parent.parent.parent
+            db_path = root / "data" / "atlas.db"
+            db_path.parent.mkdir(parents=True, exist_ok=True)
+            fallback_url = f"sqlite+aiosqlite:///{db_path}"
+            
+            # Reset engine and session factory
+            if _async_engine:
+                await _async_engine.dispose()
+            _async_engine = create_async_engine(fallback_url, echo=False)
+            _async_session_factory = async_sessionmaker(
+                _async_engine, class_=AsyncSession, expire_on_commit=False
+            )
+            
+            # Try initializing SQLite
+            async with _async_engine.begin() as conn:
+                await conn.run_sync(SQLModel.metadata.create_all)
+            logger.info("Atlas V2 database initialized with SQLite fallback.")
+        else:
+            raise e
 
 
 async def close_db() -> None:
