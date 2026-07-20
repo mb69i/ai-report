@@ -1,0 +1,81 @@
+{
+  "id": "shipping",
+  "name": "Shipping",
+  "description": "Runs the Shipping workflow. Collects all outbound shipments for the day, extracts tracking numbers, carrier details, destination addresses, and shipment status.",
+  "version": "1.0.0",
+  "created_at": "2026-07-11T00:00:00Z",
+  "modified_at": "2026-07-11T00:00:00Z",
+  "tags": ["shipping", "outbound", "fulfillment", "tracking"],
+  "required_inputs": [
+    {
+      "name": "date",
+      "type": "date",
+      "label": "Shipping Date",
+      "required": true,
+      "default": "today"
+    },
+    {
+      "name": "carrier",
+      "type": "text",
+      "label": "Carrier Filter (optional)",
+      "required": false,
+      "default": ""
+    }
+  ],
+  "steps": [
+    {
+      "id": "navigate_shipping",
+      "type": "navigate",
+      "description": "Open Shipping module",
+      "url": "{config.base_url}/warehouse/shipping",
+      "wait_for": "selector:#shipping-module, .shipping-list",
+      "retry": 2
+    },
+    {
+      "id": "filter_date",
+      "type": "fill",
+      "description": "Set shipping date",
+      "selector": "#ship-date, input[name='date']",
+      "value": "{inputs.date}",
+      "on_failure": "continue"
+    },
+    {
+      "id": "filter_carrier",
+      "type": "fill",
+      "description": "Set carrier filter",
+      "selector": "#carrier-filter, select[name='carrier']",
+      "value": "{inputs.carrier}",
+      "on_failure": "continue"
+    },
+    {
+      "id": "run_query",
+      "type": "click",
+      "description": "Run query",
+      "selector": "#run-btn, button[type='submit']",
+      "wait_after_ms": 2000,
+      "on_failure": "continue"
+    },
+    {
+      "id": "wait_results",
+      "type": "wait",
+      "description": "Wait for shipment list",
+      "selector": "table, #shipment-results",
+      "timeout_ms": 30000
+    },
+    {
+      "id": "extract_shipments",
+      "type": "extract_table",
+      "description": "Extract shipment records",
+      "selector": "#shipment-table, table",
+      "output_key": "shipment_records"
+    }
+  ],
+  "output": {
+    "format": "excel",
+    "primary_data_key": "shipment_records",
+    "filename_pattern": "Shipping_{inputs.date}"
+  },
+  "validation": {
+    "min_rows": 0
+  }
+}

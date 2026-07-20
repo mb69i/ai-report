@@ -1,0 +1,81 @@
+{
+  "id": "picking",
+  "name": "Picking",
+  "description": "Executes the Picking workflow. Opens the picking queue, collects all open pick orders for the specified date or batch, extracts item details, quantities, and locations, then generates a picking report.",
+  "version": "1.0.0",
+  "created_at": "2026-07-11T00:00:00Z",
+  "modified_at": "2026-07-11T00:00:00Z",
+  "tags": ["picking", "orders", "warehouse", "fulfillment"],
+  "required_inputs": [
+    {
+      "name": "date",
+      "type": "date",
+      "label": "Pick Date",
+      "required": true,
+      "default": "today"
+    },
+    {
+      "name": "batch_id",
+      "type": "text",
+      "label": "Batch ID (optional)",
+      "required": false,
+      "default": ""
+    }
+  ],
+  "steps": [
+    {
+      "id": "navigate_picking",
+      "type": "navigate",
+      "description": "Open picking queue",
+      "url": "{config.base_url}/warehouse/picking",
+      "wait_for": "selector:.picking-queue, #pick-list",
+      "retry": 2
+    },
+    {
+      "id": "filter_by_date",
+      "type": "fill",
+      "description": "Set date filter",
+      "selector": "#pick-date, input[name='pick_date']",
+      "value": "{inputs.date}",
+      "on_failure": "continue"
+    },
+    {
+      "id": "filter_by_batch",
+      "type": "fill",
+      "description": "Set batch filter (if provided)",
+      "selector": "#batch-id, input[name='batch']",
+      "value": "{inputs.batch_id}",
+      "on_failure": "continue"
+    },
+    {
+      "id": "apply_filter",
+      "type": "click",
+      "description": "Apply filters",
+      "selector": "#apply-filter, .filter-btn, button[type='submit']",
+      "wait_after_ms": 2000,
+      "on_failure": "continue"
+    },
+    {
+      "id": "wait_for_pick_list",
+      "type": "wait",
+      "description": "Wait for pick list to load",
+      "selector": "table.pick-list, #pick-results, .pick-table",
+      "timeout_ms": 30000
+    },
+    {
+      "id": "extract_pick_orders",
+      "type": "extract_table",
+      "description": "Extract all pick orders",
+      "selector": "table.pick-list, #pick-results table",
+      "output_key": "pick_orders"
+    }
+  ],
+  "output": {
+    "format": "excel",
+    "primary_data_key": "pick_orders",
+    "filename_pattern": "Picking_{inputs.date}"
+  },
+  "validation": {
+    "min_rows": 0
+  }
+}

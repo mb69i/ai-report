@@ -1,0 +1,89 @@
+{
+  "_comment": "Atlas V2 Configuration – Edit to customize Atlas behavior",
+  "app": {
+    "name": "Atlas",
+    "version": "2.0.0",
+    "debug": true,
+    "log_level": "INFO"
+  },
+  "backend": {
+    "host": "127.0.0.1",
+    "port": 7411,
+    "auto_start": true
+  },
+  "browser": {
+    "engine": "chromium",
+    "headless": false,
+    "slow_mo_ms": 0,
+    "timeout_ms": 30000,
+    "screenshot_on_error": true,
+    "session_dir": "./data/sessions",
+    "download_dir": "./data/downloads",
+    "user_data_dir": "./data/browser_profile"
+  },
+  "ai": {
+    "primary_provider": "gemini",
+    "fallback_provider": "ollama",
+    "gemini_model": "gemini-2.5-flash",
+    "claude_model": "claude-sonnet-4-20250514",
+    "ollama_model": "gemma3",
+    "ollama_base_url": "http://localhost:11434",
+    "offline_mode": false,
+    "send_data_to_ai": false,
+    "confirm_before_run": false,
+    "max_conversation_history": 50,
+    "prompt_version": "v2.0"
+  },
+  "database": {
+    "url": "postgresql+asyncpg://atlas:atlas_secret@localhost:5432/atlas_db",
+    "pool_size": 20,
+    "max_overflow": 10
+  },
+  "cache": {
+    "url": "redis://localhost:6379/0",
+    "ttl_seconds": 300
+  },
+  "storage": {
+    "database_path": "./data/atlas.db",
+    "exports_dir": "./data/exports",
+    "backups_dir": "./backups",
+    "backup_on_start": true,
+    "max_backups": 10,
+    "s3_enabled": false
+  },
+  "reporting": {
+    "reports_dir": "./reports",
+    "default_format": "excel",
+    "company_name": "",
+    "logo_path": ""
+  },
+  "security": {
+    "encrypt_credentials": true,
+    "credential_backend": "system",
+    "session_timeout_minutes": 480,
+    "jwt_algorithm": "HS256",
+    "jwt_expire_minutes": 480
+  },
+  "workflows": {
+    "library_dir": "./workflows",
+    "plugins_dir": "./plugins",
+    "auto_reload": true
+  },
+  "skills": {
+    "directory": "./skills",
+    "auto_discover": true
+  },
+  "ui": {
+    "theme": "dark",
+    "accent_color": "#A90E02",
+    "sidebar_collapsed": false,
+    "show_progress_in_chat": true
+  },
+  "self_healing": {
+    "enabled": true,
+    "screenshot_on_failure": true,
+    "auto_retry": true,
+    "max_retries": 3,
+    "ask_confirmation_before_repair": true
+  }
+}

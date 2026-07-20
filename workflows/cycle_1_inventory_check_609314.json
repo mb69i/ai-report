@@ -1,0 +1,174 @@
+{
+  "id": "cycle_1_inventory_check_609314",
+  "name": "Cycle 1 Inventory Check",
+  "description": "Logs into Urbanic WMS once, then loops through each Task ID in the uploaded Excel file — reusing the same browser page and filter settings across all iterations.",
+  "version": "1.1.0",
+  "created_at": "2026-07-12T16:25:16.084627Z",
+  "modified_at": "2026-07-12T16:53:00.000000Z",
+  "tags": ["wms", "inventory", "urbanic", "batch"],
+  "required_inputs": [
+    {
+      "name": "username",
+      "type": "string",
+      "label": "Username",
+      "placeholder": "Enter your username",
+      "required": true,
+      "default": "mohammed albaqir"
+    },
+    {
+      "name": "password",
+      "type": "password",
+      "label": "Password",
+      "placeholder": "Enter your password",
+      "required": true
+    },
+    {
+      "name": "batch_file",
+      "type": "file",
+      "label": "Task ID List (Excel / CSV)",
+      "placeholder": "Upload Book5.xlsx with a 'Task ID' column",
+      "required": true
+    }
+  ],
+  "steps": [
+    {
+      "id": "navigate_to_login",
+      "type": "navigate",
+      "description": "Navigate to the login page",
+      "url": "https://login.urbanic-wms.com/?redirect=https%3A%2F%2Fwms-central.urbanic-wms.com%2Fstorage%2Funique-code%2Flog%3F_source%3Dmenu&appId=2",
+      "wait_for": "selector:.organization-item",
+      "timeout_ms": 20000,
+      "on_failure": "stop"
+    },
+    {
+      "id": "select_maysquare",
+      "type": "click",
+      "description": "Select MaySquare organization",
+      "selector": ".organization-item:not(.active)",
+      "force": true,
+      "wait_after_ms": 1500,
+      "on_failure": "continue"
+    },
+    {
+      "id": "click_account_login",
+      "type": "click",
+      "description": "Switch to Account login tab",
+      "selector": "#rc-tabs-0-tab-account",
+      "wait_after_ms": 500,
+      "on_failure": "stop"
+    },
+    {
+      "id": "fill_username",
+      "type": "fill",
+      "description": "Enter username",
+      "selector": "#login_accountName",
+      "value": "{inputs.username}",
+      "clear_first": true,
+      "on_failure": "stop"
+    },
+    {
+      "id": "fill_password",
+      "type": "fill",
+      "description": "Enter password",
+      "selector": "#login_passWord",
+      "value": "{inputs.password}",
+      "clear_first": true,
+      "on_failure": "stop"
+    },
+    {
+      "id": "click_login",
+      "type": "click",
+      "description": "Click LOGIN button",
+      "selector": "button[type='submit'], button.ant-btn-primary",
+      "wait_after_ms": 6000,
+      "on_failure": "stop"
+    },
+    {
+      "id": "navigate_to_inventory_list",
+      "type": "navigate",
+      "description": "Navigate to Inventory Check List (first time — sets up the page with correct filters)",
+      "url": "https://wms-central.urbanic-wms.com/storage/inventory/list?_source=menu",
+      "wait_for": "selector:.ant-table",
+      "timeout_ms": 20000,
+      "on_failure": "stop"
+    },
+    {
+      "id": "loop_each_task",
+      "type": "for_each_row",
+      "description": "Loop over each Task ID from the Excel file",
+      "source": "{inputs.batch_file}",
+      "column": "Task ID",
+      "input_var": "task_id",
+      "collect_output_key": "inventory_details",
+      "output_key": "all_results",
+      "steps": [
+        {
+          "id": "clear_and_fill_task_id",
+          "type": "fill",
+          "description": "Clear old task ID and enter new one",
+          "selector": "input.ant-input",
+          "value": "{inputs.task_id}",
+          "clear_first": true,
+          "on_failure": "stop"
+        },
+        {
+          "id": "click_search",
+          "type": "click",
+          "description": "Click Search button",
+          "selector": "button.ant-btn-primary, button[type='submit']",
+          "wait_after_ms": 4000,
+          "on_failure": "stop"
+        },
+        {
+          "id": "wait_for_results",
+          "type": "wait",
+          "description": "Wait for search results",
+          "selector": ".ant-table-tbody tr",
+          "state": "visible",
+          "timeout_ms": 15000,
+          "on_failure": "continue"
+        },
+        {
+          "id": "click_task_link",
+          "type": "click",
+          "description": "Click the first result row link",
+          "selector": ".ant-table-tbody tr:first-child a, .ant-table-tbody tr:first-child td:first-child",
+          "wait_after_ms": 6000,
+          "on_failure": "stop"
+        },
+        {
+          "id": "wait_detail_table",
+          "type": "wait",
+          "description": "Wait for inventory detail table",
+          "selector": ".ant-table",
+          "state": "visible",
+          "timeout_ms": 20000,
+          "on_failure": "stop"
+        },
+        {
+          "id": "extract_inventory_details",
+          "type": "extract_table",
+          "description": "Extract the inventory details table",
+          "selector": "table:nth-of-type(3)",
+          "output_key": "inventory_details",
+          "on_failure": "continue"
+        },
+        {
+          "id": "go_back_to_list",
+          "type": "navigate",
+          "description": "Go back to inventory list (keeps filters intact — no reload)",
+          "url": "https://wms-central.urbanic-wms.com/storage/inventory/list?_source=menu",
+          "wait_for": "selector:.ant-table",
+          "timeout_ms": 20000,
+          "on_failure": "continue"
+        }
+      ]
+    }
+  ],
+  "output": {
+    "format": "excel"
+  },
+  "validation": {
+    "min_rows": 0
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "id": "task_investigation",
+  "name": "Task Investigation",
+  "description": "Investigates a set of Task IDs. For each task ID, opens the task detail page, extracts all relevant fields (status, assignee, dates, notes, attached documents), and compiles a comprehensive investigation report.",
+  "version": "1.0.0",
+  "created_at": "2026-07-11T00:00:00Z",
+  "modified_at": "2026-07-11T00:00:00Z",
+  "tags": ["tasks", "investigation", "audit", "detail"],
+  "required_inputs": [
+    {
+      "name": "task_ids",
+      "type": "textarea",
+      "label": "Task IDs (one per line or comma-separated)",
+      "placeholder": "TASK-001\nTASK-002\nTASK-003",
+      "required": true,
+      "default": ""
+    }
+  ],
+  "steps": [
+    {
+      "id": "navigate_tasks",
+      "type": "navigate",
+      "description": "Open task management module",
+      "url": "{config.base_url}/tasks",
+      "wait_for": "selector:#task-search, .task-module",
+      "retry": 2
+    },
+    {
+      "id": "search_task",
+      "type": "fill",
+      "description": "Enter task ID in search",
+      "selector": "#task-search, input[name='task_id'], input[placeholder*='task']",
+      "value": "{inputs.task_ids}",
+      "clear_first": true
+    },
+    {
+      "id": "submit_search",
+      "type": "click",
+      "description": "Submit task search",
+      "selector": "#search-btn, button[type='submit'], .search-button",
+      "wait_after_ms": 2000
+    },
+    {
+      "id": "wait_results",
+      "type": "wait",
+      "description": "Wait for task results",
+      "selector": "table, .task-results, #task-list",
+      "timeout_ms": 30000
+    },
+    {
+      "id": "extract_task_list",
+      "type": "extract_table",
+      "description": "Extract task list from results",
+      "selector": "table, #task-results",
+      "output_key": "task_records"
+    },
+    {
+      "id": "extract_metadata",
+      "type": "extract_metadata",
+      "description": "Capture page metadata",
+      "output_key": "page_info"
+    }
+  ],
+  "output": {
+    "format": "excel",
+    "primary_data_key": "task_records",
+    "filename_pattern": "TaskInvestigation_{now}"
+  },
+  "validation": {
+    "min_rows": 0
+  }
+}

@@ -1,0 +1,1 @@
+# Atlas Automation module package

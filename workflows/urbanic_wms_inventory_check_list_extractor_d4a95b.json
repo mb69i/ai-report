@@ -1,0 +1,205 @@
+{
+  "id": "urbanic_wms_inventory_check_list_extractor_d4a95b",
+  "name": "Urbanic WMS Inventory Check List Extractor",
+  "description": "Logs into Urbanic WMS once (supports auto-login if session exists), selects MaySquare, configures WMS search filters to 'All' status once, and then processes each Task ID from the uploaded Excel file using a highly optimized, fail-safe loop.",
+  "version": "1.0.5",
+  "created_at": "2026-07-12T18:31:28.423702Z",
+  "modified_at": "2026-07-12T19:08:36.643505Z",
+  "tags": [
+    "wms",
+    "inventory",
+    "extraction",
+    "batch"
+  ],
+  "required_inputs": [
+    {
+      "name": "username",
+      "type": "string",
+      "label": "mohammed albaqir",
+      "placeholder": "mohammed albaqir",
+      "required": true,
+      "default": "mohammed albaqir"
+    },
+    {
+      "name": "password",
+      "type": "password",
+      "label": "0454hmmd",
+      "placeholder": "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022",
+      "required": true
+    },
+    {
+      "name": "batch_file",
+      "type": "file",
+      "label": "Task ID List (Excel / CSV)",
+      "placeholder": "Upload Book5.xlsx containing a 'Task ID' column",
+      "required": true
+    }
+  ],
+  "steps": [
+    {
+      "id": "navigate_to_login",
+      "type": "navigate",
+      "description": "Navigate to the WMS login page (will auto-redirect if already logged in)",
+      "url": "https://login.urbanic-wms.com/?redirect=https%3A%2F%2Fwms-central.urbanic-wms.com%2Fstorage%2Funique-code%2Flog%3F_source%3Dmenu&appId=2",
+      "wait_for": "1500",
+      "timeout_ms": 20000,
+      "on_failure": "continue"
+    },
+    {
+      "id": "wait_login_selector",
+      "type": "wait",
+      "description": "Wait for login page elements (skipped if already logged in)",
+      "selector": ".organization-item",
+      "state": "visible",
+      "timeout_ms": 5000,
+      "on_failure": "continue"
+    },
+    {
+      "id": "click_maysquare",
+      "type": "click",
+      "description": "Select MaySquare organization option (skipped if already logged in)",
+      "selector": ".organization-item:not(.active)",
+      "force": true,
+      "wait_after_ms": 1500,
+      "on_failure": "continue"
+    },
+    {
+      "id": "click_account_login_tab",
+      "type": "click",
+      "description": "Switch to Account Login tab (skipped if already logged in)",
+      "selector": "#rc-tabs-0-tab-account",
+      "wait_after_ms": 500,
+      "on_failure": "continue"
+    },
+    {
+      "id": "fill_username",
+      "type": "fill",
+      "description": "Enter username (skipped if already logged in)",
+      "selector": "#login_accountName",
+      "value": "{inputs.username}",
+      "clear_first": true,
+      "on_failure": "continue"
+    },
+    {
+      "id": "fill_password",
+      "type": "fill",
+      "description": "Enter password (skipped if already logged in)",
+      "selector": "#login_passWord",
+      "value": "{inputs.password}",
+      "clear_first": true,
+      "on_failure": "continue"
+    },
+    {
+      "id": "click_login",
+      "type": "click",
+      "description": "Submit login form (skipped if already logged in)",
+      "selector": "text=LOGIN, text=Login, text=Sign In",
+      "wait_after_ms": 6000,
+      "on_failure": "continue"
+    },
+    {
+      "id": "navigate_to_inventory_list",
+      "type": "navigate",
+      "description": "Navigate directly to the Inventory Check List page",
+      "url": "https://wms-central.urbanic-wms.com/storage/inventory/list?_source=menu",
+      "wait_for": "selector:.ant-table",
+      "timeout_ms": 25000,
+      "on_failure": "stop"
+    },
+    {
+      "id": "click_status_dropdown",
+      "type": "click",
+      "description": "click_status_filter",
+      "selector": ".ant-select-selector, .ant-select",
+      "wait_after_ms": 1000,
+      "on_failure": "stop"
+    },
+    {
+      "id": "select_all_status",
+      "type": "click",
+      "description": "Select 'All' status from the dropdown",
+      "selector": ".ant-select-item-option-content, .ant-select-item-option",
+      "force": true,
+      "wait_after_ms": 1500,
+      "on_failure": "continue"
+    },
+    {
+      "id": "loop_each_task",
+      "type": "for_each_row",
+      "description": "Loop over each Task ID from the Excel file",
+      "source": "{inputs.batch_file}",
+      "column": "Task ID",
+      "input_var": "task_id",
+      "collect_output_key": "inventory_details",
+      "output_key": "all_results",
+      "steps": [
+        {
+          "id": "clear_and_fill_task_id",
+          "type": "fill",
+          "description": "Clear old Task ID and enter new one",
+          "selector": "input.ant-input",
+          "value": "{inputs.task_id}",
+          "clear_first": true,
+          "on_failure": "stop"
+        },
+        {
+          "id": "click_search",
+          "type": "click",
+          "description": "Click Search button using text matching",
+          "selector": "text=Search, text=search, text=\u0628\u062d\u062b",
+          "wait_after_ms": 4000,
+          "on_failure": "stop"
+        },
+        {
+          "id": "wait_for_results",
+          "type": "wait",
+          "description": "Wait for search results list",
+          "selector": ".ant-table-tbody tr",
+          "state": "visible",
+          "timeout_ms": 10000,
+          "on_failure": "continue"
+        },
+        {
+          "id": "click_task_link",
+          "type": "click",
+          "description": "Click on the searched Task ID link in the results table",
+          "selector": ".ant-table-tbody tr:first-child a, .ant-table-tbody tr:first-child td:first-child",
+          "wait_after_ms": 6000,
+          "on_failure": "continue"
+        },
+        {
+          "id": "wait_detail_table",
+          "type": "wait",
+          "description": "Wait for inventory detail table to load",
+          "selector": ".ant-table",
+          "state": "visible",
+          "timeout_ms": 20000,
+          "on_failure": "continue"
+        },
+        {
+          "id": "extract_inventory_details",
+          "type": "extract_table",
+          "description": "Extract the inventory details table",
+          "selector": "table:nth-of-type(3)",
+          "output_key": "inventory_details",
+          "on_failure": "continue"
+        },
+        {
+          "id": "go_back_to_list",
+          "type": "navigate",
+          "description": "Go back to inventory list page (reusing same tab, keeping status filter)",
+          "url": "https://wms-central.urbanic-wms.com/storage/inventory/list?_source=menu",
+          "wait_for": "selector:.ant-table",
+          "timeout_ms": 20000,
+          "on_failure": "continue"
+        }
+      ]
+    }
+  ],
+  "output": {
+    "format": "excel"
+  },
+  "validation": {
+    "min_rows": 0
+  }
+}

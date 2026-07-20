@@ -1,0 +1,81 @@
+{
+  "id": "receiving",
+  "name": "Receiving",
+  "description": "Executes the Receiving workflow. Navigates to the receiving module, processes incoming purchase orders, extracts received items, quantities, and discrepancies against expected quantities.",
+  "version": "1.0.0",
+  "created_at": "2026-07-11T00:00:00Z",
+  "modified_at": "2026-07-11T00:00:00Z",
+  "tags": ["receiving", "inbound", "purchase-orders", "warehouse"],
+  "required_inputs": [
+    {
+      "name": "po_number",
+      "type": "text",
+      "label": "PO Number (optional)",
+      "required": false,
+      "default": ""
+    },
+    {
+      "name": "date",
+      "type": "date",
+      "label": "Receiving Date",
+      "required": true,
+      "default": "today"
+    }
+  ],
+  "steps": [
+    {
+      "id": "navigate_receiving",
+      "type": "navigate",
+      "description": "Open Receiving module",
+      "url": "{config.base_url}/warehouse/receiving",
+      "wait_for": "selector:#receiving-module, .receiving-queue",
+      "retry": 2
+    },
+    {
+      "id": "filter_by_po",
+      "type": "fill",
+      "description": "Filter by PO Number",
+      "selector": "#po-number, input[name='po']",
+      "value": "{inputs.po_number}",
+      "on_failure": "continue"
+    },
+    {
+      "id": "filter_by_date",
+      "type": "fill",
+      "description": "Set receiving date",
+      "selector": "#receive-date, input[name='date']",
+      "value": "{inputs.date}",
+      "on_failure": "continue"
+    },
+    {
+      "id": "search",
+      "type": "click",
+      "description": "Run search",
+      "selector": "#search-btn, button[type='submit']",
+      "wait_after_ms": 2000,
+      "on_failure": "continue"
+    },
+    {
+      "id": "wait_results",
+      "type": "wait",
+      "description": "Wait for results",
+      "selector": "table, .results",
+      "timeout_ms": 30000
+    },
+    {
+      "id": "extract_receiving",
+      "type": "extract_table",
+      "description": "Extract receiving records",
+      "selector": "#receiving-table, table",
+      "output_key": "receiving_records"
+    }
+  ],
+  "output": {
+    "format": "excel",
+    "primary_data_key": "receiving_records",
+    "filename_pattern": "Receiving_{inputs.date}"
+  },
+  "validation": {
+    "min_rows": 0
+  }
+}

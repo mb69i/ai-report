@@ -1,0 +1,43 @@
+{
+  "name": "atlas-automation-platform",
+  "version": "2.0.0",
+  "description": "Atlas – AI-powered Warehouse Intelligence Operating System",
+  "main": "app/main.js",
+  "scripts": {
+    "dev:v2": "concurrently --kill-others-on-fail \"npm.cmd run dev:v2:ui\" \"npm.cmd run dev:backend\"",
+    "dev:v2:ui": "cd ui-v2 && npm.cmd run dev",
+    "dev:backend": "cd backend && python -m uvicorn main:app --host 127.0.0.1 --port 7411 --reload",
+    "dev": "concurrently --kill-others-on-fail \"npm.cmd run dev:ui\" \"npm.cmd run dev:electron\"",
+    "dev:ui": "cd ui && npm.cmd run dev",
+    "dev:electron": "wait-on http://localhost:5173 && electron .",
+    "build": "cd ui && npm.cmd run build && electron-builder",
+    "build:v2": "cd ui-v2 && npm.cmd run build",
+    "install:all": "npm.cmd install && cd ui && npm.cmd install && cd ../ui-v2 && npm.cmd install",
+    "setup": "python scripts/setup.py"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "electron": "^31.7.6",
+    "electron-builder": "^24.13.3",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.atlas.automation",
+    "productName": "Atlas",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "app/**",
+      "ui/dist/**",
+      "backend/**",
+      "workflows/**",
+      "plugins/**",
+      "atlas.config.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    }
+  }
+}

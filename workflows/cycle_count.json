@@ -1,0 +1,94 @@
+{
+  "id": "cycle_count",
+  "name": "Cycle Count",
+  "description": "Generates a Cycle Count inventory report. Navigates to the cycle count module, sets the report date, runs the report, and extracts all counted items with their quantities and discrepancies.",
+  "version": "1.0.0",
+  "created_at": "2026-07-11T00:00:00Z",
+  "modified_at": "2026-07-11T00:00:00Z",
+  "tags": ["inventory", "count", "daily", "warehouse"],
+  "author": "Atlas",
+  "required_inputs": [
+    {
+      "name": "date",
+      "type": "date",
+      "label": "Report Date",
+      "placeholder": "YYYY-MM-DD",
+      "required": true,
+      "default": "today"
+    },
+    {
+      "name": "warehouse_code",
+      "type": "text",
+      "label": "Warehouse Code",
+      "placeholder": "e.g. WH-01",
+      "required": false,
+      "default": ""
+    }
+  ],
+  "steps": [
+    {
+      "id": "navigate_to_module",
+      "type": "navigate",
+      "description": "Open the Cycle Count report module",
+      "url": "{config.base_url}/inventory/cycle-count",
+      "wait_for": "selector:#report-container",
+      "on_failure": "stop",
+      "retry": 2
+    },
+    {
+      "id": "set_date",
+      "type": "fill",
+      "description": "Enter the report date",
+      "selector": "#date-input, input[name='date'], input[type='date']",
+      "value": "{inputs.date}",
+      "clear_first": true
+    },
+    {
+      "id": "set_warehouse",
+      "type": "fill",
+      "description": "Set warehouse filter (if provided)",
+      "selector": "#warehouse-input, input[name='warehouse']",
+      "value": "{inputs.warehouse_code}",
+      "on_failure": "continue"
+    },
+    {
+      "id": "run_report",
+      "type": "click",
+      "description": "Click Run Report button",
+      "selector": "#run-report, button[type='submit'], .run-report-btn",
+      "wait_after_ms": 2000
+    },
+    {
+      "id": "wait_for_results",
+      "type": "wait",
+      "description": "Wait for report table to load",
+      "selector": "#report-table, table.report-data, .results-table",
+      "state": "visible",
+      "timeout_ms": 45000
+    },
+    {
+      "id": "extract_count_data",
+      "type": "extract_table",
+      "description": "Extract all cycle count records",
+      "selector": "#report-table, table.report-data",
+      "output_key": "cycle_count_records"
+    },
+    {
+      "id": "capture_screenshot",
+      "type": "screenshot",
+      "description": "Capture screenshot for audit trail",
+      "path": "data/screenshots/cycle_count_{inputs.date}.png",
+      "on_failure": "continue"
+    }
+  ],
+  "output": {
+    "format": "excel",
+    "template": "cycle_count_template",
+    "primary_data_key": "cycle_count_records",
+    "filename_pattern": "CycleCount_{inputs.date}"
+  },
+  "validation": {
+    "min_rows": 1,
+    "required_output_keys": ["cycle_count_records"]
+  }
+}

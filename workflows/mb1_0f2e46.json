@@ -1,0 +1,153 @@
+{
+  "id": "mb1_0f2e46",
+  "name": "mb1",
+  "description": "Logs into Urbanic WMS, searches for a specific inventory check ID, and extracts the detailed inventory round results table.",
+  "version": "1.0.0",
+  "created_at": "2026-07-12T19:04:22.355293Z",
+  "modified_at": "2026-07-12T19:04:22.355293Z",
+  "tags": [
+    "wms",
+    "inventory",
+    "extraction"
+  ],
+  "required_inputs": [
+    {
+      "name": "username",
+      "type": "string",
+      "label": "Username",
+      "placeholder": "Enter your WMS username",
+      "required": true,
+      "default": "mohammed albaqir"
+    },
+    {
+      "name": "password",
+      "type": "password",
+      "label": "Password",
+      "placeholder": "Enter your WMS password",
+      "required": true
+    },
+    {
+      "name": "inventory_id",
+      "type": "string",
+      "label": "Inventory ID",
+      "placeholder": "e.g. IQ1PD202607102121571RWZ",
+      "required": true,
+      "default": "IQ1PD202607102121571RWZ"
+    }
+  ],
+  "steps": [
+    {
+      "id": "navigate_to_login",
+      "type": "navigate",
+      "description": "Navigate to the WMS login page",
+      "url": "https://login.urbanic-wms.com/?redirect=https%3A%2F%2Fwms-central.urbanic-wms.com%2Fstorage%2Funique-code%2Flog%3F_source%3Dmenu&appId=2",
+      "on_failure": "stop"
+    },
+    {
+      "id": "select_organization",
+      "type": "click",
+      "description": "Select the organization 'MaySquare'",
+      "selector": "text=MaySquare",
+      "on_failure": "stop"
+    },
+    {
+      "id": "click_account_login_tab",
+      "type": "click",
+      "description": "Switch to Account Login tab",
+      "selector": "text=Account login",
+      "on_failure": "stop"
+    },
+    {
+      "id": "fill_username",
+      "type": "fill",
+      "description": "Enter username",
+      "selector": "#login_accountName",
+      "value": "{inputs.username}",
+      "on_failure": "stop"
+    },
+    {
+      "id": "fill_password",
+      "type": "fill",
+      "description": "Enter password",
+      "selector": "#login_passWord",
+      "value": "{inputs.password}",
+      "on_failure": "stop"
+    },
+    {
+      "id": "click_login",
+      "type": "click",
+      "description": "Click the LOGIN button",
+      "selector": "text=LOGIN",
+      "wait_after_ms": 5000,
+      "on_failure": "stop"
+    },
+    {
+      "id": "navigate_to_inventory_list",
+      "type": "navigate",
+      "description": "Navigate directly to the Inventory Check List page",
+      "url": "https://wms-central.urbanic-wms.com/storage/inventory/list?_source=menu",
+      "on_failure": "stop"
+    },
+    {
+      "id": "click_status_filter",
+      "type": "click",
+      "description": "Click the status dropdown filter",
+      "selector": "text=Wait For Stocktaking",
+      "on_failure": "continue"
+    },
+    {
+      "id": "select_all_status",
+      "type": "click",
+      "description": "Select 'All' status option",
+      "selector": "text=All",
+      "on_failure": "continue"
+    },
+    {
+      "id": "fill_inventory_id",
+      "type": "fill",
+      "description": "Enter the Inventory ID in the search input",
+      "selector": "input.ant-input",
+      "value": "{inputs.inventory_id}",
+      "on_failure": "stop"
+    },
+    {
+      "id": "click_search",
+      "type": "click",
+      "description": "Click the Search button",
+      "selector": "text=Search",
+      "wait_after_ms": 2000,
+      "on_failure": "stop"
+    },
+    {
+      "id": "click_inventory_record",
+      "type": "click",
+      "description": "Click on the matching inventory record link",
+      "selector": "text={inputs.inventory_id}",
+      "wait_after_ms": 3000,
+      "on_failure": "stop"
+    },
+    {
+      "id": "wait_for_details_table",
+      "type": "wait",
+      "description": "Wait for the inventory details table to load",
+      "selector": "table:nth-of-type(3)",
+      "state": "visible",
+      "timeout_ms": 15000,
+      "on_failure": "stop"
+    },
+    {
+      "id": "extract_inventory_details",
+      "type": "extract_table",
+      "description": "Extract the inventory round results table",
+      "selector": "table:nth-of-type(3)",
+      "output_key": "inventory_details",
+      "on_failure": "stop"
+    }
+  ],
+  "output": {
+    "format": "excel"
+  },
+  "validation": {
+    "min_rows": 0
+  }
+}

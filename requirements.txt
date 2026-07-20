@@ -1,0 +1,54 @@
+# Atlas V2 – Python Backend Dependencies
+# Install: pip install -r requirements.txt
+
+# ── Web Framework ─────────────────────────────────────────────────────────────
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+pydantic==2.10.2
+pydantic-settings==2.6.1
+python-multipart==0.0.12
+
+# ── Database (PostgreSQL + Async) ─────────────────────────────────────────────
+sqlmodel==0.0.22
+sqlalchemy[asyncio]>=2.0.35
+asyncpg>=0.29.0
+alembic>=1.14.0
+greenlet>=3.1.0
+
+# ── Cache ─────────────────────────────────────────────────────────────────────
+redis[hiredis]>=5.2.0
+
+# ── Auth ──────────────────────────────────────────────────────────────────────
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+bcrypt>=4.1.0
+
+# ── Browser Automation ────────────────────────────────────────────────────────
+playwright==1.49.0
+
+# ── AI Clients ────────────────────────────────────────────────────────────────
+google-generativeai==0.8.3
+openai>=1.40.0
+anthropic>=0.39.0
+httpx==0.28.1
+
+# ── Reporting ─────────────────────────────────────────────────────────────────
+openpyxl==3.1.5
+reportlab==4.2.5
+python-docx==1.1.2
+
+# ── Security ──────────────────────────────────────────────────────────────────
+keyring==25.5.0
+cryptography==44.0.0
+
+# ── Utilities ─────────────────────────────────────────────────────────────────
+python-dotenv==1.0.1
+aiofiles==24.1.0
+schedule==1.2.2
+loguru==0.7.3
+rich==13.9.4
+watchfiles==1.0.3
+
+# ── Testing ───────────────────────────────────────────────────────────────────
+pytest==8.3.4
+pytest-asyncio==0.24.0
