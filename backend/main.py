@@ -23,7 +23,7 @@ from config.settings import get_settings, get_atlas_config
 from storage.database import init_db, close_db
 
 # ── Router imports ─────────────────────────────────────────────────────────────
-from api import workflows, runner, ai_chat, reports, history, backup, plugins_api, settings_api, recorder_api
+from api import workflows, runner, ai_chat, reports, history, backup, plugins_api, settings_api, recorder_api, dashboard
 from api import auth_api
 
 settings = get_settings()
@@ -101,6 +101,7 @@ app.include_router(backup.router,       prefix="/api/backup",     tags=["Backup"
 app.include_router(plugins_api.router,  prefix="/api/plugins",    tags=["Plugins"])
 app.include_router(settings_api.router, prefix="/api/settings",   tags=["Settings"])
 app.include_router(recorder_api.router, prefix="/api/recorder",   tags=["Recorder"])
+app.include_router(dashboard.router,    prefix="/api/dashboard",  tags=["Dashboard"])
 
 
 # ── Core Endpoints ────────────────────────────────────────────────────────────

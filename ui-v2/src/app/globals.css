@@ -446,6 +446,8 @@ body {
   background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: var(--r-sm);
 }
 @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
 /* Quick Actions Grid */
 .quick-actions {
